@@ -1,0 +1,7 @@
+{
+  "name": "video-thumbnails",
+  "description": "Extenstion of Kirby Toolkit to allow Video drivers like FFMPG.",
+  "author": "Jonatan Eriksson <jonatan@tsto.org>",
+  "license": "MIT",
+  "type": "kirby-plugin"
+}
