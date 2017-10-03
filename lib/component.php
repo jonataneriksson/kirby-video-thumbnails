@@ -55,6 +55,72 @@ class VideoThumb extends Thumb {
     endswitch;
   }
 
+  /**
+   * @param Generator $thumb
+   * @return string
+   */
+
+  protected function dimensions(Generator $thumb) {
+    switch ($thumb->type()):
+      case 'video':
+        return $this->videodimensions($thumb);
+      break;
+      case 'image':
+        return parent::dimensions($thumb);
+      break;
+    endswitch;
+  }
+
+  /**
+   * @param Generator $thumb
+   * @return string
+   */
+
+  protected function videodimensions(VideoGenerator $thumb) {
+    $dimensions = clone $thumb->source->dimensions();
+    $videmeta = $this->videometa($thumb->source);
+    $dimensions->width = $videmeta['width'];
+    $dimensions->height = $videmeta['height'];
+    $dimensions->ratio = intval($videmeta['width'] / $videmeta['height']*100)/100;
+    $dimensions->orientation = $dimensions->ratio > 1 ? 'landscape' : 'portrait';
+    if(isset($thumb->options['crop']) && $thumb->options['crop']) {
+      $dimensions->crop(a::get($thumb->options, 'width'), a::get($thumb->options, 'height'));
+    } else {
+      $dimensions->resize(a::get($thumb->options, 'width'), a::get($thumb->options, 'height'), a::get($thumb->options, 'upscale'));
+    }
+    return $dimensions;
+  }
+
+  /**
+   * @param Generator $thumb
+   * @return string
+   */
+
+  public function videometa($file) {
+
+    if(!isset($this->metadata)){
+      //Fet info with ffprobe
+      $ffprobe = $this->kirby->option('thumbs.video.ffprobe') ? $this->kirby->option('thumbs.video.ffprobe') : 'ffprobe';
+      $probe = $ffprobe.' -v quiet -print_format json -show_format -show_entries stream=width,height "'.$file->root().'"  2>&1';
+      $ffprobeinfo = json_decode(shell_exec($probe), true);
+
+      //Sort object
+      $this->metadata['width'] = $ffprobeinfo['streams'][0]['width'];
+      $this->metadata['height'] = $ffprobeinfo['streams'][0]['height'];
+      $this->metadata['duration'] = $ffprobeinfo['format']['duration'];
+      return $this->metadata;
+    } else {
+      return $this->metadata;
+    }
+
+  }
+
+  /**
+   * @param Generator $thumb
+   * @return string
+   */
+
+
   public function createvideo($file, $params) {
 
     /*if(!$file->isWebsafe()) {
@@ -80,8 +146,12 @@ class VideoThumb extends Thumb {
     //Patch duration to parameters
     $params['driver'] = $this->kirby->option('thumbs.video.driver');
     $params['thumbs.video.bin'] = $this->kirby->option('thumbs.video.bin');
-    $params['overwrite'] = true;
-    //die(var_dump($params));
+    //$params['overwrite'] = true;
+
+    //Patch some dimensions
+    $file->dimensions()->width = $this->videometa($file)['width'];
+    $file->dimensions()->height = $this->videometa($file)['height'];
+    $file->video = $this->videometa($file);
 
     // generate the thumb
     $thumb = new VideoGenerator($file, $params);

@@ -21,18 +21,18 @@ thumb::$drivers['ffmpeg'] = function($thumb) {
   /* !Images and clips from the middle */
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-  if($thumb->options['clip'] && $thumb->options['clipstart']) {
-    $duration = $thumb->options['duration'];
-    $clipstart = $thumb->options['clipstart'];
-    $playroom = $duration - $clipstart;
-    $cliptime = ($playroom > 8) ? 8 : $playroom;
-    $command[] = '-t '.$cliptime;
-    $command[] = '-ss '.$thumb->options['clipstart'];
-  } else if($thumb->options['clip'] && !$thumb->options['clipstart']) {
-    $duration = $thumb->options['duration'];
-    $start = ($thumb->options['duration'] > 10) ? round($duration/2)-4 : 2;
-    $command[] = '-ss '.$start;
-    $command[] = '-t 8';
+  if(isset($thumb->options['clip']) && isset($thumb->options['clipstart'])) {
+    //$duration = $thumb->options['duration'];
+    //$clipstart = $thumb->options['clipstart'];
+    //$playroom = $duration - $clipstart;
+    //$cliptime = ($playroom > 8) ? 8 : $playroom;
+    //$command[] = '-t '.$cliptime;
+    //$command[] = '-ss '.$thumb->options['clipstart'];
+  } else if(isset($thumb->options['clip'])) {
+    //$duration = $thumb->options['duration'];
+    //$start = ($thumb->options['duration'] > 10) ? round($duration/2)-4 : 2;
+    $command[] = '-ss 2'; //$start;
+    $command[] = '-t 6'; //duration
   } else {
     $command[] = '-ss 0';
   }
@@ -49,19 +49,15 @@ thumb::$drivers['ffmpeg'] = function($thumb) {
   /* !Resizing */
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-  if($thumb->options['height'] && !$thumb->options['width'] && $thumb->source->dimensions()->height > $thumb->options['height']) {
-    $command[] = '-vf scale="-2:'.$thumb->options['height'].'"';
-  }
-
-  if($thumb->options['width'] && !$thumb->options['height'] && $thumb->source->dimensions()->width > $thumb->options['width']) {
-    $command[] = '-vf scale="'.$thumb->options['width'].':-2"';
+  if(isset($thumb->options['width']) && isset($thumb->options['height'])) {
+    $command[] = '-vf scale="'.$thumb->options['width'].':'.$thumb->options['height'].'"';
   }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
   /* !Quality */
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-  if($thumb->options['silent']) {
+  if(isset($thumb->options['silent'])) {
     $command[] = '-an';
   }
 
@@ -69,7 +65,7 @@ thumb::$drivers['ffmpeg'] = function($thumb) {
   /* !Quality */
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-  if($thumb->options['quality'] && !$thumb->options['still']) {
+  if(isset($thumb->options['quality']) && !isset($thumb->options['still'])) {
     //$invertedratio = (100-$thumb->options['quality'])/100;
     //$crfratio = intval(51 * $invertedratio);
     $crfratio = 21;
@@ -83,7 +79,7 @@ thumb::$drivers['ffmpeg'] = function($thumb) {
   /* !Output (2>&1 for independent)*/
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-  if($thumb->options['still']) {
+  if(isset($thumb->options['still'])) {
     $command[] = '-frames:v 1';
     $command[] = '-f mjpeg';
     $root = pathinfo($thumb->destination->root);
@@ -99,11 +95,6 @@ thumb::$drivers['ffmpeg'] = function($thumb) {
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
   $execstring = implode(' ', $command);
-
-  //print_r($execstring);
-
   exec($execstring);
-
-  //echo(shell_exec($execstring));
 
 };
