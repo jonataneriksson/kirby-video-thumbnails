@@ -62,4 +62,68 @@ class VideoThumb extends Thumb {
     return call_user_func_array(parent::$drivers[$this->options['driver']], array($this));
   }
 
+  /**
+   * Filename and destination
+   *
+   */
+
+  public function destination() {
+
+    if($this->options['still']) { //
+
+      $destination = new Obj();
+      $safeName    = f::safeName($this->source->name());
+
+      if($this->options['width']) {
+        $this->options['height'] = $this->options['height'] ? $this->options['height'] : intval($this->options['width'] / $this->source()->dimensions()->ratio()); // *
+      }
+
+      if($this->options['height']) {
+        $this->options['width'] = $this->options['width'] ? $this->options['width'] : intval($this->options['height'] * $this->source()->dimensions()->ratio());
+      }
+
+      //Create filename
+      $destination->filename = str::template('{safeName}-{width}x{height}.{extension}', array(
+        'extension'    => 'jpg', //TODO this could be in the defaults
+        'safeName'     => $safeName,
+        'width'        => $this->options['width'],
+        'height'       => $this->options['height'],
+      ));
+
+      //Setup the stuff
+      $destination->url  = $this->options['url'] . '/' . $this->source()->page . '/' . $destination->filename;
+      $destination->root = $this->options['root'] . DS . $this->source()->page . DS . $destination->filename;
+
+      return $destination;
+    } else {
+      return parent::destination();
+    }
+
+  }
+
+  /**
+   * Generates and returns the full html tag for the thumbnail
+   *
+   * @param array $attr An optional array of attributes, which should be added to the image tag
+   * @return string
+   */
+  public function tag($attr = array()) {
+
+    // don't return the tag if the url is not available
+    if(!$this->result->url()) return false;
+
+    return html::img($this->result->url(), array_merge(array(
+      'alt'    => isset($this->options['alt'])   ? $this->options['alt']   : ' ',
+      'class'  => isset($this->options['class']) ? $this->options['class'] : null,
+    ), $attr));
+
+  }
+
+  /**
+   * Makes it possible to echo the entire object
+   */
+  public function __toString() {
+    return $this->tag();
+  }
+
 }
