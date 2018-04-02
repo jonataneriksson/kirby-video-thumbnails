@@ -1,12 +1,11 @@
 <?php
 
 /**
- * Thumb
+ * VideoThumb
  *
- * @package   Kirby Toolkit
- * @author    Bastian Allgeier <bastian@getkirby.com>
- * @link      http://getkirby.com
- * @copyright Bastian Allgeier
+ * @author    Jonatan Eriksson <jonatan@tsto.org>
+ * @link      http://tsto.org
+ * @copyright Jonatan Eriksson
  * @license   http://www.opensource.org/licenses/mit-license.php MIT License
  */
 class VideoThumb extends Thumb {
@@ -17,6 +16,7 @@ class VideoThumb extends Thumb {
    * @param mixed $source
    * @param array $params
    */
+
   public function __construct($source, $params = array()) {
 
     $this->source      = $this->result = is_a($source, 'Media') ? $source : new Media($source);
@@ -58,6 +58,7 @@ class VideoThumb extends Thumb {
    * Calls the driver function and
    * creates the thumbnail
    */
+
   protected function create() {
     return call_user_func_array(parent::$drivers[$this->options['driver']], array($this));
   }
@@ -69,15 +70,18 @@ class VideoThumb extends Thumb {
 
   public function destination() {
 
-    if($this->options['still']) { //
+    //Return an image if the 'still' option is on.
+    if($this->options['still']) {
 
       $destination = new Obj();
       $safeName    = f::safeName($this->source->name());
 
+      //Video width
       if($this->options['width']) {
         $this->options['height'] = $this->options['height'] ? $this->options['height'] : intval($this->options['width'] / $this->source()->dimensions()->ratio()); // *
       }
 
+      //Video height
       if($this->options['height']) {
         $this->options['width'] = $this->options['width'] ? $this->options['width'] : intval($this->options['height'] * $this->source()->dimensions()->ratio());
       }
@@ -101,29 +105,21 @@ class VideoThumb extends Thumb {
 
   }
 
-  /**
-   * Generates and returns the full html tag for the thumbnail
-   *
-   * @param array $attr An optional array of attributes, which should be added to the image tag
-   * @return string
-   */
-  public function tag($attr = array()) {
+  //Direct to the original isObsolete if thumbnail is an image.
+  public function isObsolete() {
+    if($this->options['overwrite'] === true) return false;
 
-    // don't return the tag if the url is not available
-    if(!$this->result->url()) return false;
+    //Use the image obsolete if this is an image
+    switch ($this->type()):
+      case 'video':
+        return false;
+      break;
+      case 'image':
+        return parent::isObsolete();
+      break;
+    endswitch;
 
-    return html::img($this->result->url(), array_merge(array(
-      'alt'    => isset($this->options['alt'])   ? $this->options['alt']   : ' ',
-      'class'  => isset($this->options['class']) ? $this->options['class'] : null,
-    ), $attr));
-
-  }
-
-  /**
-   * Makes it possible to echo the entire object
-   */
-  public function __toString() {
-    return $this->tag();
+    return false;
   }
 
 }
