@@ -15,6 +15,11 @@ thumb::$drivers['ffmpeg'] = function($thumb) {
 
   if($thumb->source->type() == 'video'):
     $command[] = $ffmpeg.' -y';
+    //$crfratio = 21;
+    //$command[] = '-c:v libx264';
+    //$command[] = '-tune grain';
+    //$command[] = '-preset fast';
+    //$command[] = '-crf '.$crfratio;
   endif;
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -43,6 +48,7 @@ thumb::$drivers['ffmpeg'] = function($thumb) {
 
   if($thumb->source->type() == 'video'):
     $command[] = '-i "' . $thumb->source->root() . '"';
+    $command[] = '-movflags +faststart';
   endif;
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -51,6 +57,10 @@ thumb::$drivers['ffmpeg'] = function($thumb) {
 
   if(isset($thumb->options['width']) && isset($thumb->options['height'])) {
     $command[] = '-vf scale="'.$thumb->options['width'].':'.$thumb->options['height'].'"';
+  } else if (isset($thumb->options['height'])) {
+    $command[] = '-vf scale=-2:'.$thumb->options['height'];
+  } else if (isset($thumb->options['width'])) {
+    $command[] = '-vf scale='.$thumb->options['width'].':-2';
   }
 
   /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -68,6 +78,12 @@ thumb::$drivers['ffmpeg'] = function($thumb) {
   if(isset($thumb->options['quality']) && !isset($thumb->options['still'])) {
     //$invertedratio = (100-$thumb->options['quality'])/100;
     //$crfratio = intval(51 * $invertedratio);
+    $crfratio = 21;
+    $command[] = '-c:v libx264';
+    $command[] = '-tune grain';
+    $command[] = '-preset fast';
+    $command[] = '-crf '.$crfratio;
+  } else {
     $crfratio = 21;
     $command[] = '-c:v libx264';
     $command[] = '-tune grain';
