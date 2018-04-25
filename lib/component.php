@@ -27,7 +27,7 @@ class VideoThumb extends Thumb {
     return array_merge(parent::defaults(), [
       'thumbs.video.bin'   => 'ffmpeg',
       'thumbs.video.probe'=> 'ffprobe',
-      'thumbs.video.driver'=> 'ffmpeg'
+      'thumbs.video.driver'=> 'ffmpeg',
     ]);
   }
 
@@ -78,11 +78,13 @@ class VideoThumb extends Thumb {
 
   protected function videodimensions(VideoGenerator $thumb) {
     $dimensions = clone $thumb->source->dimensions();
-    $videmeta = $this->videometa($thumb->source);
-    $dimensions->width = $videmeta['width'];
-    $dimensions->height = $videmeta['height'];
-    $dimensions->ratio = intval($videmeta['width'] / $videmeta['height']*100)/100;
-    $dimensions->orientation = $dimensions->ratio > 1 ? 'landscape' : 'portrait';
+    $videometa = $this->videometa($thumb->source);
+    $dimensions->width = $videometa['width'];
+    $dimensions->height = $videometa['height'];
+    if($dimensions->height > 0){
+      $dimensions->ratio = intval($videometa['width'] / $videometa['height']*100)/100;
+      $dimensions->orientation = $dimensions->ratio > 1 ? 'landscape' : 'portrait';
+    }
     if(isset($thumb->options['crop']) && $thumb->options['crop']) {
       $dimensions->crop(a::get($thumb->options, 'width'), a::get($thumb->options, 'height'));
     } else {

@@ -71,7 +71,7 @@ class VideoThumb extends Thumb {
   public function destination() {
 
     //Return an image if the 'still' option is on.
-    if($this->options['still']) {
+    if(isset($this->options['still'])) { //    if($this->options['still']) { //
 
       $destination = new Obj();
       $safeName    = f::safeName($this->source->name());
