@@ -107,11 +107,9 @@ class VideoThumb extends Thumb {
       $ffprobeinfo = json_decode(shell_exec($probe), true);
 
       //Sort object
-      $metadata = [];
-      $metadata['width'] = $ffprobeinfo['streams'][0]['width'];
-      $metadata['height'] = $ffprobeinfo['streams'][0]['height'];
-      $metadata['duration'] = $ffprobeinfo['format']['duration'];
-      $this->metadata = $metadata;
+      $this->metadata['width'] = $ffprobeinfo['streams'][0]['width'];
+      $this->metadata['height'] = $ffprobeinfo['streams'][0]['height'];
+      $this->metadata['duration'] = $ffprobeinfo['format']['duration'];
       return $this->metadata;
     } else {
       return $this->metadata;
